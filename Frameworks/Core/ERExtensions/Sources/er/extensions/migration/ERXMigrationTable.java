@@ -1319,7 +1319,6 @@ public class ERXMigrationTable {
 	@SuppressWarnings("unchecked")
 	public NSArray<EOSQLExpression> _addForeignKeyExpressions(ERXMigrationColumn[] sourceColumns, ERXMigrationColumn[] destinationColumns) {
 		EOSchemaGeneration schemaGeneration = (EOSchemaGeneration) _database.synchronizationFactory();
-		System.err.println("class of schema generation: " + schemaGeneration.getClass().getName());
 		NSArray<EOSQLExpression> expressions = schemaGeneration.foreignKeyConstraintStatementsForRelationship(_newRelationship(sourceColumns, destinationColumns));
 		ERXMigrationDatabase._ensureNotEmpty(expressions, "add foreign key", false);
 		return expressions;

@@ -153,12 +153,7 @@ public class ERXMigrationDatabase {
 	 * @return the synchronization factory for this adaptor
 	 */
 	public EOSchemaSynchronizationFactory synchronizationFactory() {
-		String _plugin = adaptor().plugInName();
-		System.err.println("expression class: " + adaptor().defaultExpressionClass().getName());
-		System.err.println("the plugin name: " + _plugin);
-	//	System.err.println("the adaptor default delegate: " + adaptor().defaultDelegate().getClass().getName());
 		EOSchemaSynchronizationFactory _factory = (EOSchemaSynchronizationFactory) adaptor().schemaSynchronizationFactory();
-		System.err.println("getting synch factory: " + _factory.getClass().getName());
 		return _factory;
 	}
 
