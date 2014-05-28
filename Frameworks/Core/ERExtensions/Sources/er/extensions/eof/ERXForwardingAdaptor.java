@@ -5,16 +5,12 @@
 //
 package er.extensions.eof;
 
-import java.lang.reflect.Method;
-
 import com.webobjects.eoaccess.EOAdaptor;
 import com.webobjects.eoaccess.EOAdaptorContext;
 import com.webobjects.eoaccess.EOAttribute;
 import com.webobjects.eoaccess.EOEntity;
 import com.webobjects.eoaccess.EOModel;
 import com.webobjects.eoaccess.EOSQLExpressionFactory;
-import com.webobjects.eoaccess.EOSchemaGeneration;
-import com.webobjects.eoaccess.EOSynchronizationFactory;
 import com.webobjects.foundation.NSArray;
 import com.webobjects.foundation.NSData;
 import com.webobjects.foundation.NSDictionary;
@@ -38,7 +34,8 @@ public abstract class ERXForwardingAdaptor extends EOAdaptor {
 	public EOSQLExpressionFactory expressionFactory() {
 		return _forwardedAdaptor.expressionFactory();
 	}
-
+	
+	/*
 	@Override
 	public EOSchemaGeneration synchronizationFactory() {
 		return _forwardedAdaptor.synchronizationFactory();
@@ -54,7 +51,8 @@ public abstract class ERXForwardingAdaptor extends EOAdaptor {
 			throw new RuntimeException("Failed to retrieve schemaSynchronizationFactory.", e);
 		}
 	}
-
+	*/
+	
 	@Override
 	public NSArray prototypeAttributes() {
 		return _forwardedAdaptor.prototypeAttributes();

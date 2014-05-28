@@ -6,7 +6,8 @@ import com.webobjects.eoaccess.EOAdaptor;
 import com.webobjects.eoaccess.EOAttribute;
 import com.webobjects.eoaccess.EOEntity;
 import com.webobjects.eoaccess.EOSQLExpression;
-import com.webobjects.eoaccess.EOSchemaSynchronization;
+import com.webobjects.eoaccess.synchronization.EOSchemaGenerationOptions;
+import com.webobjects.eoaccess.synchronization.EOSchemaSynchronization;
 import com.webobjects.foundation.NSArray;
 import com.webobjects.foundation.NSDictionary;
 import com.webobjects.foundation.NSMutableDictionary;
@@ -375,8 +376,8 @@ public class ERXMigrationColumn {
 	 */
 	@SuppressWarnings("unchecked")
 	public NSArray<EOSQLExpression> _createExpressions() {
-		EOSchemaSynchronization schemaSynchronization = _table.database().synchronizationFactory();
-		NSArray<EOSQLExpression> expressions = schemaSynchronization.statementsToInsertColumnForAttribute(_newAttribute(), NSDictionary.EmptyDictionary);
+		EOSchemaSynchronization schemaSynchronization = (EOSchemaSynchronization) _table.database().synchronizationFactory();
+		NSArray<EOSQLExpression> expressions = schemaSynchronization.statementsToInsertColumnForAttribute(_newAttribute(), new EOSchemaGenerationOptions());
 		ERXMigrationDatabase._ensureNotEmpty(expressions, "add column", true);
 		return expressions;
 	}
@@ -404,8 +405,8 @@ public class ERXMigrationColumn {
 	 */
 	@SuppressWarnings("unchecked")
 	public NSArray<EOSQLExpression> _deleteExpressions() {
-		EOSchemaSynchronization schemaSynchronization = _table.database().synchronizationFactory();
-		NSArray<EOSQLExpression> expressions = schemaSynchronization.statementsToDeleteColumnNamed(name(), _table.name(), NSDictionary.EmptyDictionary);
+		EOSchemaSynchronization schemaSynchronization = (EOSchemaSynchronization) _table.database().synchronizationFactory();
+		NSArray<EOSQLExpression> expressions = schemaSynchronization.statementsToDeleteColumnNamed(name(), _table.name(), new EOSchemaGenerationOptions());
 		ERXMigrationDatabase._ensureNotEmpty(expressions, "delete column", true);
 		return expressions;
 	}
@@ -430,8 +431,8 @@ public class ERXMigrationColumn {
 	 */
 	@SuppressWarnings("unchecked")
 	public NSArray<EOSQLExpression> _renameToExpressions(String newName) {
-		EOSchemaSynchronization schemaSynchronization = _table.database().synchronizationFactory();
-		NSArray<EOSQLExpression> expressions = schemaSynchronization.statementsToRenameColumnNamed(name(), _table.name(), newName, NSDictionary.EmptyDictionary);
+		EOSchemaSynchronization schemaSynchronization = (EOSchemaSynchronization) _table.database().synchronizationFactory();
+		NSArray<EOSQLExpression> expressions = schemaSynchronization.statementsToRenameColumnNamed(name(), _table.name(), newName, new EOSchemaGenerationOptions());
 		ERXMigrationDatabase._ensureNotEmpty(expressions, "rename column", true);
 		_setName(newName);
 		return expressions;
@@ -459,8 +460,8 @@ public class ERXMigrationColumn {
 	 */
 	@SuppressWarnings("unchecked")
 	public void setAllowsNull(boolean allowsNull) throws SQLException {
-		EOSchemaSynchronization schemaSynchronization = _table.database().synchronizationFactory();
-		NSArray<EOSQLExpression> expressions = schemaSynchronization.statementsToModifyColumnNullRule(name(), _table.name(), allowsNull, NSDictionary.EmptyDictionary);
+		EOSchemaSynchronization schemaSynchronization = (EOSchemaSynchronization) _table.database().synchronizationFactory();
+		NSArray<EOSQLExpression> expressions = schemaSynchronization.statementsToModifyColumnNullRule(name(), _table.name(), allowsNull, new EOSchemaGenerationOptions());
 		ERXMigrationDatabase._ensureNotEmpty(expressions, "modify allows null", true);
 		ERXJDBCUtilities.executeUpdateScript(_table.database().adaptorChannel(), ERXMigrationDatabase._stringsForExpressions(expressions));
 	}
@@ -482,10 +483,10 @@ public class ERXMigrationColumn {
 	 *             if the change fails
 	 */
 	@SuppressWarnings("unchecked")
-	public void setDataType(int jdbcType, int scale, int precision, int width, NSDictionary options) throws SQLException {
+	public void setDataType(int jdbcType, int scale, int precision, int width, EOSchemaGenerationOptions options) throws SQLException {
 		JDBCAdaptor adaptor = (JDBCAdaptor) _table.database().adaptor();
 		String externalType = ERXSQLHelper.newSQLHelper(adaptor).externalTypeForJDBCType(adaptor, jdbcType);
-		EOSchemaSynchronization schemaSynchronization = _table.database().synchronizationFactory();
+		EOSchemaSynchronization schemaSynchronization = (EOSchemaSynchronization) _table.database().synchronizationFactory();
 		NSArray<EOSQLExpression> expressions = schemaSynchronization.statementsToConvertColumnType(_name, _table.name(), null, new _ColumnType(externalType, scale, precision, width), options);
 		ERXMigrationDatabase._ensureNotEmpty(expressions, "convert column type", true);
 		ERXJDBCUtilities.executeUpdateScript(_table.database().adaptorChannel(), ERXMigrationDatabase._stringsForExpressions(expressions));
@@ -507,7 +508,7 @@ public class ERXMigrationColumn {
 	 * @throws SQLException
 	 *             if the change fails
 	 */
-	public void setWidthType(int jdbcType, int width, NSDictionary options) throws SQLException {
+	public void setWidthType(int jdbcType, int width, EOSchemaGenerationOptions options) throws SQLException {
 		setDataType(jdbcType, 0, 0, width, options);
 	}
 
@@ -525,7 +526,7 @@ public class ERXMigrationColumn {
 	 * @throws SQLException
 	 *             if the change fails
 	 */
-	public void setNumericType(int jdbcType, int scale, int precision, NSDictionary options) throws SQLException {
+	public void setNumericType(int jdbcType, int scale, int precision, EOSchemaGenerationOptions options) throws SQLException {
 		setDataType(jdbcType, scale, precision, 0, options);
 	}
 

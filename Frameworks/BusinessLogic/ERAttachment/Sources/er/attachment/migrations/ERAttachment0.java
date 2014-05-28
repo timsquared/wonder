@@ -48,7 +48,7 @@ public class ERAttachment0 extends ERXMigrationDatabase.Migration {
     attachmentTable.newStringColumn("s3Path", 1000, true);
     attachmentTable.create();
     attachmentTable.setPrimaryKey("id");
-    attachmentTable.addUniqueIndex("ERAttachmentWebPath", "webPath", 1000);
+    attachmentTable.addUniqueIndex("webPath");
 
     ERXMigrationTable attachmentDataTable = database.newTableNamed("ERAttachmentData");
     attachmentDataTable.newBlobColumn("data", true);

@@ -14,15 +14,13 @@ import com.webobjects.eoaccess.EODatabaseContext;
 import com.webobjects.eoaccess.EOModel;
 import com.webobjects.eoaccess.EOModelGroup;
 import com.webobjects.eoaccess.EOSQLExpression;
-import com.webobjects.eoaccess.EOSchemaGeneration;
-import com.webobjects.eoaccess.EOSynchronizationFactory;
 import com.webobjects.eoaccess.EOUtilities;
+import com.webobjects.eoaccess.synchronization.EOSchemaGenerationOptions;
+import com.webobjects.eoaccess.synchronization.EOSchemaSynchronizationFactory;
 import com.webobjects.eocontrol.EOEditingContext;
 import com.webobjects.foundation.NSArray;
-import com.webobjects.foundation.NSDictionary;
 import com.webobjects.foundation.NSForwardException;
 import com.webobjects.foundation.NSMutableArray;
-import com.webobjects.foundation.NSMutableDictionary;
 import com.webobjects.foundation.NSTimestamp;
 
 import er.extensions.eof.ERXEC;
@@ -45,14 +43,13 @@ public class DataCreator {
 		new DataCreator().createAll();
 	}
 
-	private NSDictionary optionsWithPrimaryKeySupportDisabled(NSDictionary options) {
-		NSMutableDictionary mutableOptions = options.mutableClone();
-		mutableOptions.setObjectForKey("NO", EOSchemaGeneration.CreatePrimaryKeySupportKey);
-		mutableOptions.setObjectForKey("NO", EOSchemaGeneration.DropPrimaryKeySupportKey);
-		return mutableOptions.immutableClone();
+	private EOSchemaGenerationOptions optionsWithPrimaryKeySupportDisabled(EOSchemaGenerationOptions options) {
+		options.setCreatePrimaryKeySupport(false);
+		options.setDropPrimaryKeySupport(false);
+		return options;
 	}
 
-	private void createPrimaryKeySupportForModel(EOModel eomodel, EOAdaptorChannel channel, EOSynchronizationFactory syncFactory) {
+	private void createPrimaryKeySupportForModel(EOModel eomodel, EOAdaptorChannel channel, EOSchemaSynchronizationFactory syncFactory) {
 		try {
 			// AK: the (Object) cast is needed, because in 5.4 new NSArray(obj)
 			// != new NSArray(array).
@@ -74,9 +71,9 @@ public class DataCreator {
 			try {
 				EOAdaptorChannel channel = dbc.availableChannel().adaptorChannel();
 				if (eomodel.adaptorName().contains("JDBC")) {
-					EOSynchronizationFactory syncFactory = (EOSynchronizationFactory) channel.adaptorContext().adaptor().synchronizationFactory();
+					EOSchemaSynchronizationFactory syncFactory = (EOSchemaSynchronizationFactory) channel.adaptorContext().adaptor().schemaSynchronizationFactory();
 					ERXSQLHelper helper = ERXSQLHelper.newSQLHelper(channel);
-					NSDictionary options = helper.defaultOptionDictionary(true, dropTables);
+					EOSchemaGenerationOptions options = helper.defaultOptions(true, dropTables);
 
 					// Primary key support creation throws an unwanted exception
 					// if
