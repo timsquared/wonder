@@ -775,7 +775,7 @@ public class ERXJDBCUtilities {
 	 */
 	public static void dropTablesForEntities(EOAdaptorChannel channel, NSArray<EOEntity> entities, boolean ignoreFailures) throws SQLException {
 		ERXSQLHelper sqlHelper = ERXSQLHelper.newSQLHelper(channel);
-		String sqlScript = sqlHelper.createSchemaSQLForEntitiesWithOptions(entities, channel.adaptorContext().adaptor(), sqlHelper.defaultOptionDictionary(false, true));
+		String sqlScript = sqlHelper.createSchemaSQLForEntitiesWithOptions(entities, channel.adaptorContext().adaptor(), sqlHelper.defaultOptions(false, true));
 		ERXJDBCUtilities.executeUpdateScript(channel, sqlScript, ignoreFailures);
 	}
 
@@ -807,7 +807,7 @@ public class ERXJDBCUtilities {
 	 */
 	public static void createTablesForEntities(EOAdaptorChannel channel, NSArray<EOEntity> entities) throws SQLException {
 		ERXSQLHelper sqlHelper = ERXSQLHelper.newSQLHelper(channel);
-		String sqlScript = sqlHelper.createSchemaSQLForEntitiesWithOptions(entities, channel.adaptorContext().adaptor(), sqlHelper.defaultOptionDictionary(true, false));
+		String sqlScript = sqlHelper.createSchemaSQLForEntitiesWithOptions(entities, channel.adaptorContext().adaptor(), sqlHelper.defaultOptions(true, false));
 		ERXJDBCUtilities.executeUpdateScript(channel, sqlScript);
 	}
 

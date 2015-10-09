@@ -10,7 +10,7 @@ import com.webobjects.eoaccess.EOEntity;
 import com.webobjects.eoaccess.EOGeneralAdaptorException;
 import com.webobjects.eoaccess.EOModel;
 import com.webobjects.eoaccess.EOModelGroup;
-import com.webobjects.eoaccess.EOSchemaGeneration;
+import com.webobjects.eoaccess.synchronization.EOSchemaGenerationOptions;
 import com.webobjects.eocontrol.EOFetchSpecification;
 import com.webobjects.eocontrol.EOKeyValueQualifier;
 import com.webobjects.eocontrol.EOQualifier;
@@ -358,16 +358,17 @@ public class ERXJDBCMigrationLock implements IERXMigrationLock {
 
 	protected String dbUpdaterCreateStatement(EOModel model, JDBCAdaptor adaptor) {
 		EOModel dbUpdaterModel = dbUpdaterModelWithModel(model, adaptor);
-		NSMutableDictionary<String, String> flags = new NSMutableDictionary<String, String>();
-		flags.setObjectForKey("NO", EOSchemaGeneration.DropTablesKey);
-		flags.setObjectForKey("NO", EOSchemaGeneration.DropPrimaryKeySupportKey);
-		flags.setObjectForKey("YES", EOSchemaGeneration.CreateTablesKey);
-		flags.setObjectForKey("NO", EOSchemaGeneration.CreatePrimaryKeySupportKey);
-		flags.setObjectForKey("YES", EOSchemaGeneration.PrimaryKeyConstraintsKey);
-		flags.setObjectForKey("NO", EOSchemaGeneration.ForeignKeyConstraintsKey);
-		flags.setObjectForKey("NO", EOSchemaGeneration.CreateDatabaseKey);
-		flags.setObjectForKey("NO", EOSchemaGeneration.DropDatabaseKey);
-		String createTableScript = ERXSQLHelper.newSQLHelper(adaptor).createSchemaSQLForEntitiesWithOptions(new NSArray<EOEntity>(dbUpdaterModel.entityNamed(migrationTableName(adaptor))), adaptor, flags);
+		EOSchemaGenerationOptions options = new EOSchemaGenerationOptions();
+		
+		options.setDropTables(false);
+		options.setDropPrimaryKeySupport(false);
+		options.setCreateTables(true);
+		options.setCreatePrimaryKeySupport(false);
+		options.setPrimaryKeyConstraints(true);
+		options.setForeignKeyConstraints(false);
+		options.setCreateDatabase(false);
+		options.setDropDatabase(false);
+		String createTableScript = ERXSQLHelper.newSQLHelper(adaptor).createSchemaSQLForEntitiesWithOptions(new NSArray<EOEntity>(dbUpdaterModel.entityNamed(migrationTableName(adaptor))), adaptor, options);
 		return createTableScript;
 	}
 }

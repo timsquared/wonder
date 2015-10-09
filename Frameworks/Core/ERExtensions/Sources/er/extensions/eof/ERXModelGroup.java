@@ -449,7 +449,7 @@ public class ERXModelGroup extends EOModelGroup {
 				if (adaptor instanceof JDBCAdaptor) {
 					JDBCAdaptor jdbc = (JDBCAdaptor) adaptor;
 					ERXSQLHelper helper = ERXSQLHelper.newSQLHelper(jdbc);
-					String sql = helper.createSchemaSQLForEntitiesInModelAndOptions(eomodel.entities(), eomodel, helper.defaultOptionDictionary(true, true));
+					String sql = helper.createSchemaSQLForEntitiesInModelAndOptions(eomodel.entities(), eomodel, helper.defaultOptions(true, true));
 					ERXFileUtilities.writeInputStreamToFile(new ByteArrayInputStream(sql.getBytes()), dumpFile);
 					log.info("Wrote Schema SQL to " + dumpFile);
 				}

@@ -34,9 +34,9 @@ import com.webobjects.eoaccess.EOQualifierSQLGeneration;
 import com.webobjects.eoaccess.EORelationship;
 import com.webobjects.eoaccess.EOSQLExpression;
 import com.webobjects.eoaccess.EOSQLExpressionFactory;
-import com.webobjects.eoaccess.EOSchemaGeneration;
-import com.webobjects.eoaccess.EOSynchronizationFactory;
 import com.webobjects.eoaccess.EOUtilities;
+import com.webobjects.eoaccess.synchronization.EOSchemaGenerationOptions;
+import com.webobjects.eoaccess.synchronization.EOSchemaSynchronizationFactory;
 import com.webobjects.eocontrol.EOEditingContext;
 import com.webobjects.eocontrol.EOFetchSpecification;
 import com.webobjects.eocontrol.EOObjectStoreCoordinator;
@@ -121,7 +121,7 @@ public class ERXSQLHelper {
 	 * @return a <code>String</code> containing SQL statements to create
 	 *         tables
 	 */
-	public String createSchemaSQLForEntitiesInModelWithNameAndOptions(NSArray<EOEntity> entities, String modelName, NSDictionary optionsCreate) {
+	public String createSchemaSQLForEntitiesInModelWithNameAndOptions(NSArray<EOEntity> entities, String modelName, EOSchemaGenerationOptions optionsCreate) {
 		EOModel m = ERXEOAccessUtilities.modelGroup(null).modelNamed(modelName);
 		return createSchemaSQLForEntitiesInModelAndOptions(entities, m, optionsCreate);
 	}
@@ -170,7 +170,7 @@ public class ERXSQLHelper {
 	 *         tables
 	 */
 	@SuppressWarnings("unchecked")
-	public String createSchemaSQLForEntitiesInModelAndOptions(NSArray<EOEntity> entities, EOModel model, NSDictionary optionsCreate) {
+	public String createSchemaSQLForEntitiesInModelAndOptions(NSArray<EOEntity> entities, EOModel model, EOSchemaGenerationOptions optionsCreate) {
 		EOEditingContext ec = ERXEC.newEditingContext();
 		ec.lock();
 		try {
@@ -217,7 +217,7 @@ public class ERXSQLHelper {
 	 *            createSchemaSQLForEntitiesInModelWithNameAndOptions)
 	 * @return a sql script
 	 */
-	public String createSchemaSQLForEntitiesWithOptions(NSArray<EOEntity> entities, EODatabaseContext databaseContext, NSDictionary<String, String> optionsCreate) {
+	public String createSchemaSQLForEntitiesWithOptions(NSArray<EOEntity> entities, EODatabaseContext databaseContext, EOSchemaGenerationOptions optionsCreate) {
 		return createSchemaSQLForEntitiesWithOptions(entities, databaseContext.adaptorContext().adaptor(), optionsCreate);
 	}
 
@@ -230,18 +230,19 @@ public class ERXSQLHelper {
 	 * @return the sql script
 	 */
 	public String createDependentSchemaSQLForEntities(NSArray<EOEntity> entities, EOAdaptor adaptor) {
-		NSMutableDictionary<String, String> optionsCreateTables = new NSMutableDictionary<String, String>();
-		optionsCreateTables.setObjectForKey("NO", EOSchemaGeneration.DropTablesKey);
-		optionsCreateTables.setObjectForKey("NO", EOSchemaGeneration.DropPrimaryKeySupportKey);
-		optionsCreateTables.setObjectForKey("YES", EOSchemaGeneration.CreateTablesKey);
-		optionsCreateTables.setObjectForKey("YES", EOSchemaGeneration.CreatePrimaryKeySupportKey);
-		optionsCreateTables.setObjectForKey("YES", EOSchemaGeneration.PrimaryKeyConstraintsKey);
-		optionsCreateTables.setObjectForKey("NO", EOSchemaGeneration.ForeignKeyConstraintsKey);
-		optionsCreateTables.setObjectForKey("NO", EOSchemaGeneration.CreateDatabaseKey);
-		optionsCreateTables.setObjectForKey("NO", EOSchemaGeneration.DropDatabaseKey);
+		
+		EOSchemaGenerationOptions optionsForCreateTables = new EOSchemaGenerationOptions();
+		optionsForCreateTables.setDropTables(false);
+		optionsForCreateTables.setDropPrimaryKeySupport(false);
+		optionsForCreateTables.setCreateTables(true);
+		optionsForCreateTables.setCreatePrimaryKeySupport(true);
+		optionsForCreateTables.setPrimaryKeyConstraints(true);
+		optionsForCreateTables.setForeignKeyConstraints(false);
+		optionsForCreateTables.setCreateDatabase(false);
+		optionsForCreateTables.setDropDatabase(false);
 		StringBuilder sqlBuffer = new StringBuilder();
-		EOSynchronizationFactory sf = ((JDBCAdaptor) adaptor).plugIn().synchronizationFactory();
-		String creationScript = sf.schemaCreationScriptForEntities(entities, optionsCreateTables);
+		EOSchemaSynchronizationFactory sf = ((JDBCAdaptor) adaptor).plugIn().schemaSynchronizationFactory();
+		String creationScript = sf.schemaCreationScriptForEntities(entities, optionsForCreateTables);
 		sqlBuffer.append(creationScript);
 		
 		NSMutableArray<EOEntity> foreignKeyEntities = entities.mutableClone();
@@ -256,16 +257,16 @@ public class ERXSQLHelper {
 			}
 		}
 		
-		NSMutableDictionary<String, String> optionsCreateForeignKeys = new NSMutableDictionary<String, String>();
-		optionsCreateForeignKeys.setObjectForKey("NO", EOSchemaGeneration.DropTablesKey);
-		optionsCreateForeignKeys.setObjectForKey("NO", EOSchemaGeneration.DropPrimaryKeySupportKey);
-		optionsCreateForeignKeys.setObjectForKey("NO", EOSchemaGeneration.CreateTablesKey);
-		optionsCreateForeignKeys.setObjectForKey("NO", EOSchemaGeneration.CreatePrimaryKeySupportKey);
-		optionsCreateForeignKeys.setObjectForKey("NO", EOSchemaGeneration.PrimaryKeyConstraintsKey);
-		optionsCreateForeignKeys.setObjectForKey("YES", EOSchemaGeneration.ForeignKeyConstraintsKey);
-		optionsCreateForeignKeys.setObjectForKey("NO", EOSchemaGeneration.CreateDatabaseKey);
-		optionsCreateForeignKeys.setObjectForKey("NO", EOSchemaGeneration.DropDatabaseKey);
-		String foreignKeyScript = sf.schemaCreationScriptForEntities(foreignKeyEntities, optionsCreateForeignKeys);
+		EOSchemaGenerationOptions optionsForCreateForeignKeys = new EOSchemaGenerationOptions();
+		optionsForCreateTables.setDropTables(false);
+		optionsForCreateTables.setDropPrimaryKeySupport(false);
+		optionsForCreateTables.setCreateTables(false);
+		optionsForCreateTables.setCreatePrimaryKeySupport(false);
+		optionsForCreateTables.setPrimaryKeyConstraints(false);
+		optionsForCreateTables.setForeignKeyConstraints(true);
+		optionsForCreateTables.setCreateDatabase(false);
+		optionsForCreateTables.setDropDatabase(false);
+		String foreignKeyScript = sf.schemaCreationScriptForEntities(foreignKeyEntities, optionsForCreateForeignKeys);
 		sqlBuffer.append(foreignKeyScript);
 		
 		return sqlBuffer.toString();
@@ -282,9 +283,9 @@ public class ERXSQLHelper {
 	 *            createSchemaSQLForEntitiesInModelWithNameAndOptions)
 	 * @return a sql script
 	 */
-	public String createSchemaSQLForEntitiesWithOptions(NSArray<EOEntity> entities, EOAdaptor adaptor, NSDictionary<String, String> optionsDictionary) {
-		EOSynchronizationFactory sf = ((JDBCAdaptor) adaptor).plugIn().synchronizationFactory();
-		String creationScript = sf.schemaCreationScriptForEntities(entities, optionsDictionary);  
+	public String createSchemaSQLForEntitiesWithOptions(NSArray<EOEntity> entities, EOAdaptor adaptor, EOSchemaGenerationOptions options) {
+		EOSchemaSynchronizationFactory sf = ((JDBCAdaptor) adaptor).plugIn().schemaSynchronizationFactory();
+		String creationScript = sf.schemaCreationScriptForEntities(entities, options);  
 		return creationScript;
 	}
 
@@ -321,11 +322,13 @@ public class ERXSQLHelper {
 	 *         tables
 	 */
 	public String createSchemaSQLForEntitiesInModel(NSArray<EOEntity> entities, EOModel model) {
-		return createSchemaSQLForEntitiesInModelAndOptions(entities, model, defaultOptionDictionary(true, true));
+		return createSchemaSQLForEntitiesInModelAndOptions(entities, model, defaultOptions(true, true));
 	}
 
 	/**
 	 * Creates an option dictionary to use with the other methods
+	 * 
+	 * @deprecated replaced by WO 5.4 API EOSchemaGenerationOptions class
 	 * 
 	 * @param create
 	 *            add create statements
@@ -350,6 +353,7 @@ public class ERXSQLHelper {
 	 * @return a <code>String</code> containing SQL statements to create
 	 *         tables
 	 */
+	/*
 	public NSMutableDictionary<String, String> defaultOptionDictionary(boolean create, boolean drop) {
 		NSMutableDictionary<String, String> optionsCreate = new NSMutableDictionary<String, String>();
 		optionsCreate.setObjectForKey((drop) ? "YES" : "NO", EOSchemaGeneration.DropTablesKey);
@@ -360,6 +364,45 @@ public class ERXSQLHelper {
 		optionsCreate.setObjectForKey((create) ? "YES" : "NO", EOSchemaGeneration.ForeignKeyConstraintsKey);
 		optionsCreate.setObjectForKey("NO", EOSchemaGeneration.CreateDatabaseKey);
 		optionsCreate.setObjectForKey("NO", EOSchemaGeneration.DropDatabaseKey);
+		return optionsCreate;
+	}
+	*/
+	/**
+	 * Creates an EOSchemaGenerationOptions object to use with the other method
+	 * TODO need to update this javadoc further
+	 * 
+	 * @param create
+	 *            add create statements
+	 * @param drop
+	 *            add drop statements <br/><br/>This method uses the following
+	 *            defaults options:
+	 *            <ul>
+	 *            <li>EOSchemaGeneration.DropTablesKey=YES if drop</li>
+	 *            <li>EOSchemaGeneration.DropPrimaryKeySupportKey=YES if drop</li>
+	 *            <li>EOSchemaGeneration.CreateTablesKey=YES if create</li>
+	 *            <li>EOSchemaGeneration.CreatePrimaryKeySupportKey=YES if
+	 *            create</li>
+	 *            <li>EOSchemaGeneration.PrimaryKeyConstraintsKey=YES if create</li>
+	 *            <li>EOSchemaGeneration.ForeignKeyConstraintsKey=YES if create</li>
+	 *            <li>EOSchemaGeneration.CreateDatabaseKey=NO</li>
+	 *            <li>EOSchemaGeneration.DropDatabaseKey=NO</li>
+	 *            </ul>
+	 *            <br/><br>
+	 *            Possible values are <code>YES</code> and <code>NO</code>
+	 * 
+	 * @return a <code>String</code> containing SQL statements to create
+	 *         tables 
+	 */
+	public EOSchemaGenerationOptions defaultOptions(boolean create, boolean drop) {
+		EOSchemaGenerationOptions optionsCreate = new EOSchemaGenerationOptions();
+		optionsCreate.setDropTables(drop);
+		optionsCreate.setDropPrimaryKeySupport(drop);
+		optionsCreate.setCreateTables(create);
+		optionsCreate.setCreatePrimaryKeySupport(create);
+		optionsCreate.setPrimaryKeyConstraints(create);
+		optionsCreate.setForeignKeyConstraints(create);
+		optionsCreate.setCreateDatabase(false);
+		optionsCreate.setDropDatabase(false);
 		return optionsCreate;
 	}
 
@@ -382,7 +425,7 @@ public class ERXSQLHelper {
 	 *         tables
 	 */
 	public String createSchemaSQLForEntitiesInDatabaseContext(NSArray<EOEntity> entities, EODatabaseContext databaseContext, boolean create, boolean drop) {
-		return createSchemaSQLForEntitiesWithOptions(entities, databaseContext, defaultOptionDictionary(create, drop));
+		return createSchemaSQLForEntitiesWithOptions(entities, databaseContext, defaultOptions(create, drop));
 	}
 
 	public String createIndexSQLForEntities(NSArray<EOEntity> entities) {
@@ -1717,7 +1760,7 @@ public class ERXSQLHelper {
 		 * @see ERXSQLHelper#createSchemaSQLForEntitiesInModelWithNameAndOptions(NSArray, String, NSDictionary)
 		 */
 		@Override
-		public String createSchemaSQLForEntitiesInModelWithNameAndOptions(NSArray<EOEntity> entities, String modelName, NSDictionary optionsCreate) {
+		public String createSchemaSQLForEntitiesInModelWithNameAndOptions(NSArray<EOEntity> entities, String modelName, EOSchemaGenerationOptions optionsCreate) {
 			String oldConstraintName = null;
 			int i = 0;
 			String s = super.createSchemaSQLForEntitiesInModelWithNameAndOptions(entities, modelName, optionsCreate);
@@ -1895,6 +1938,51 @@ public class ERXSQLHelper {
 		public String limitExpressionForSQL(EOSQLExpression expression, EOFetchSpecification fetchSpecification, String sql, long start, long end) {
 			// Openbase support for limiting result set
 			return sql + " return results " + start + " to " + end;
+		}
+		
+		/**
+		 * OpenBase can only apply a index to one column at a time
+		 * OpenBase does not have named indexes
+		 * OpenBase will not accept an ALTER TABLE command where the table name is in quotes
+		 */
+		
+		public String sqlForCreateIndex(String tableName, String columnName, boolean uniqueIndex) {
+			
+			StringBuilder _builder = new StringBuilder("create ");
+			if (uniqueIndex)
+				_builder.append("unique ");
+			_builder.append("index " + tableName + " " + columnName);
+			
+			return _builder.toString();
+		}
+		
+		@Override
+		public String sqlForCreateUniqueIndex(String indexName, String tableName, ColumnIndex... columnIndexes) {
+			NSArray<String> columnNames = columnNamesFromColumnIndexes(columnIndexes);
+			String _onlyColumnName = columnNames.objectAtIndex(0);
+			return sqlForCreateIndex(tableName, _onlyColumnName, true);
+		}
+		
+		@Override
+		public String sqlForCreateIndex(String indexName, String tableName, ColumnIndex... columnIndexes) {
+			NSArray<String> columnNames = columnNamesFromColumnIndexes(columnIndexes);
+			String _onlyColumnName = columnNames.objectAtIndex(0);
+			return sqlForCreateIndex(tableName, _onlyColumnName, false);
+		}
+		
+		public String externalTypeForJDBCType(JDBCAdaptor adaptor, int jdbcType) {
+			
+			String _externalType = null;
+			switch (jdbcType) {
+			case Types.FLOAT:
+				_externalType = "float";
+				break;
+
+			default:
+				_externalType = super.externalTypeForJDBCType(adaptor, jdbcType);
+				break;
+			}
+			return _externalType;
 		}
 	}
 	

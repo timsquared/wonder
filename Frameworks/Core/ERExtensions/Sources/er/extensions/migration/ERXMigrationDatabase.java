@@ -6,7 +6,7 @@ import com.webobjects.eoaccess.EOAdaptor;
 import com.webobjects.eoaccess.EOAdaptorChannel;
 import com.webobjects.eoaccess.EOModel;
 import com.webobjects.eoaccess.EOSQLExpression;
-import com.webobjects.eoaccess.EOSynchronizationFactory;
+import com.webobjects.eoaccess.synchronization.EOSchemaSynchronizationFactory;
 import com.webobjects.eocontrol.EOEditingContext;
 import com.webobjects.eocontrol.EOKeyValueQualifier;
 import com.webobjects.eocontrol.EOQualifier;
@@ -111,6 +111,7 @@ import er.extensions.jdbc.ERXJDBCUtilities;
  * 
  * @author mschrag
  */
+@SuppressWarnings("deprecation")
 public class ERXMigrationDatabase {
 	public static final Logger log = Logger.getLogger(ERXMigrationDatabase.class);
 
@@ -151,8 +152,9 @@ public class ERXMigrationDatabase {
 	 * 
 	 * @return the synchronization factory for this adaptor
 	 */
-	public EOSynchronizationFactory synchronizationFactory() {
-		return (EOSynchronizationFactory) adaptor().synchronizationFactory();
+	public EOSchemaSynchronizationFactory synchronizationFactory() {
+		EOSchemaSynchronizationFactory _factory = (EOSchemaSynchronizationFactory) adaptor().schemaSynchronizationFactory();
+		return _factory;
 	}
 
 	/**
